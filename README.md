@@ -4,7 +4,18 @@ This project is a set of test assertions built on top of [the amazing ApprovalTe
 * The same applies to the modification date (ModDate).
 * Finally, many pdf files have a [trailer ID property that will always be unique](http://stackoverflow.com/questions/20085899/what-is-the-id-field-in-a-pdf-file/20091203?noredirect=1#20091203).
 
-This library normalizes these values before delegating to ApprovalTests to verify the normalized pdf file.
+This library normalizes these values before delegating to ApprovalTests to verify the normalized pdf file, therefore providing a more useful pdf file verifier.
+
+## Usage
+
+	Stream pdf = createSamplePdf();
+    PdfApprovals.Verify(pdf);
+        
+or
+	
+	string pdfFilePath = getSamplePdfPath();
+    PdfApprovals.Verify(pdfFilePath);
+
 
 ## Notes
 
