@@ -14,12 +14,16 @@ namespace ApprovalTests.BetterPdfVerification
     /// </summary>
     public static class PdfApprovals
     {
-        public static void Verify(string file)
-        {
+        public static void Verify(string file) {
+            if (file == null)
+                throw new ArgumentNullException("file");
             verify(PdfReader.Open(file, PdfDocumentOpenMode.Modify));
         }
-        public static void Verify(Stream pdf)
-        {
+        public static void Verify(Stream pdf) {
+            if(pdf == null)
+                throw new ArgumentNullException("pdf");
+            if(pdf.Length <= 0)
+                throw new ArgumentException("Pdf stream has no contents");
             rewind(pdf);
             verify(PdfReader.Open(pdf, PdfDocumentOpenMode.Modify));
         }

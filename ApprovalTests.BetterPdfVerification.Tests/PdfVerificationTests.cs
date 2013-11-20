@@ -1,4 +1,5 @@
-﻿using ApprovalTests.Reporters;
+﻿using System;
+using ApprovalTests.Reporters;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using Xunit;
@@ -6,13 +7,30 @@ using System.IO;
 
 namespace ApprovalTests.BetterPdfVerification.Tests
 {
-    [UseReporter(/*typeof(FileLauncherReporter),*/ typeof(WinMergeReporter), typeof(ClipboardReporter))]
+    [UseReporter(typeof(FileLauncherReporter), typeof(WinMergeReporter), typeof(ClipboardReporter))]
     public class PdfVerificationTests
     {
         [Fact]
         public void can_verify_pdfs_created_with_pdfsharp() {
             var pdf = createSamplePdf();
             PdfApprovals.Verify(pdf);
+        }
+
+        [Fact]
+        public void react_to_empty_stream_properly() {
+            Assert.Throws<ArgumentException>(() =>
+                PdfApprovals.Verify(new MemoryStream(0))
+                );
+        }
+
+        [Fact]
+        public void react_to_null_argument_properly() {
+            Assert.Throws<ArgumentNullException>(() =>
+                PdfApprovals.Verify(null as Stream)
+                );
+            Assert.Throws<ArgumentNullException>(() =>
+                PdfApprovals.Verify(null as string)
+                );
         }
 
         /// <summary>
