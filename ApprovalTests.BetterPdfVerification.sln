@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApprovalTests.BetterPdfVerification", "ApprovalTests.BetterPdfVerification\ApprovalTests.BetterPdfVerification.csproj", "{05C18EBE-B0D5-4096-AB06-F2D5EA9180FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApprovalTests.BetterPdfVerification.Tests", "ApprovalTests.BetterPdfVerification.Tests\ApprovalTests.BetterPdfVerification.Tests.csproj", "{13A7C15A-CD62-4A16-981E-7BEDEC37631B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{05C18EBE-B0D5-4096-AB06-F2D5EA9180FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05C18EBE-B0D5-4096-AB06-F2D5EA9180FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05C18EBE-B0D5-4096-AB06-F2D5EA9180FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13A7C15A-CD62-4A16-981E-7BEDEC37631B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13A7C15A-CD62-4A16-981E-7BEDEC37631B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13A7C15A-CD62-4A16-981E-7BEDEC37631B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13A7C15A-CD62-4A16-981E-7BEDEC37631B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
