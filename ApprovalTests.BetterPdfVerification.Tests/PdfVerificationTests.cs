@@ -21,13 +21,13 @@ namespace ApprovalTests.BetterPdfVerification.Tests
         [Fact]
         public void can_verify_pdfs_created_with_pdfsharp() {
             var pdf = createSamplePdf();
-            PdfApprovals.VerifyFile(pdf);
+            PdfApprovals.Verify(pdf);
         }
 
         /// <summary>
         /// Create hello world pdf, from http://www.pdfsharp.com/PDFsharp/index.php?option=com_content&task=view&id=15&Itemid=35
         /// </summary>
-        static string createSamplePdf() {
+        static Stream createSamplePdf() {
             var document = new PdfDocument();
             var page = document.AddPage();
             var gfx = XGraphics.FromPdfPage(page);
@@ -38,17 +38,24 @@ namespace ApprovalTests.BetterPdfVerification.Tests
                 new XRect(0, 0, page.Width, page.Height),
                 XStringFormat.Center);
 
-            var pdf = PathUtilities.GetAdjacentFile("temp.pdf");
-            document.Save(pdf);
-            return pdf;
+            var ms = new MemoryStream();
+            document.Save(ms, closeStream: false);
+            return ms;
         }
 
     }
 
     public static class PdfApprovals
     {
-        public static void VerifyFile(string file) {
-            var doc = PdfReader.Open(file, PdfDocumentOpenMode.Modify);
+        public static void Verify(string file) {
+            verify(PdfReader.Open(file, PdfDocumentOpenMode.Modify));
+        }
+        public static void Verify(Stream pdf) {
+            rewind(pdf);
+            verify(PdfReader.Open(pdf, PdfDocumentOpenMode.Modify));
+        }
+
+        static void verify(PdfDocument doc) {
             var knownDate = new DateTime(2010, 1, 1);
             doc.Info.CreationDate = doc.Info.ModificationDate = knownDate;
             using (var ms = new MemoryStream()) {
@@ -61,6 +68,10 @@ namespace ApprovalTests.BetterPdfVerification.Tests
 
         static void rewind(Stream stream) { stream.Seek(0, SeekOrigin.Begin);}
 
+        /// <summary>
+        /// Ids look like this:
+        /// /ID[<7B8D63B6A42B804386D5145B251346BC><952D5CBCFB77E14A80CFFC76AC1D2F6A>]
+        /// </summary>
         static void clearId(MemoryStream ms) {
             var sr = new StreamReader(ms);
             var enc = sr.CurrentEncoding;
@@ -98,12 +109,5 @@ namespace ApprovalTests.BetterPdfVerification.Tests
         static bool compare(byte matchingByte, int targetByte) {
             return matchingByte == default(byte) || matchingByte == targetByte;
         }
-
-        /*
-         * /ID[<7B8D63B6A42B804386D5145B251346BC><952D5CBCFB77E14A80CFFC76AC1D2F6A>]
-         * input eg: /ID[<********************************><********************************>]
-         * b1 != b2 -> b2++, restart
-         * b1++, b2++
-         */
     }
 }
