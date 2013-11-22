@@ -10,14 +10,23 @@ namespace ApprovalTests.BetterPdfVerification
     /// <summary>
     /// Provides ApprovalTest verifications for pdf files that are scrubbed of things like
     /// creation date (regardless of specific syntax), modification date
-    /// and pdf ID
+    /// and pdf ID. Note that any files passed into these methods will be scrubbed, so while they
+    /// should match their original versions physically they will likely not match them byte for byte.
     /// </summary>
     public static class PdfApprovals
     {
-        public static void Verify(string file) {
-            if (file == null)
-                throw new ArgumentNullException("file");
-            verify(PdfReader.Open(file, PdfDocumentOpenMode.Modify));
+        public static void Verify(FileInfo pdfFile) {
+            if (pdfFile == null)
+                throw new ArgumentNullException("pdfFile");
+            if(!pdfFile.Exists)
+                throw new ArgumentException(String.Format("Non-existant file: '{0}'", pdfFile.FullName));
+            Verify(pdfFile.OpenRead());
+        }
+
+        public static void Verify(string pdfFile) {
+            if (pdfFile == null)
+                throw new ArgumentNullException("pdfFile");
+            verify(PdfReader.Open(pdfFile, PdfDocumentOpenMode.Modify));
         }
         public static void Verify(Stream pdf) {
             if(pdf == null)

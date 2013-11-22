@@ -1,5 +1,6 @@
 ﻿using System;
 using ApprovalTests.Reporters;
+using ApprovalUtilities.Utilities;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using Xunit;
@@ -20,6 +21,13 @@ namespace ApprovalTests.BetterPdfVerification.Tests
         public void react_to_empty_stream_properly() {
             Assert.Throws<ArgumentException>(() =>
                 PdfApprovals.Verify(new MemoryStream(0))
+                );
+        }
+
+        [Fact]
+        public void react_to_nonexistant_file_properly() {
+            Assert.Throws<ArgumentException>(() =>
+                PdfApprovals.Verify(new FileInfo(PathUtilities.GetAdjacentFile("this-file-does-not-exist.pdf")))
                 );
         }
 

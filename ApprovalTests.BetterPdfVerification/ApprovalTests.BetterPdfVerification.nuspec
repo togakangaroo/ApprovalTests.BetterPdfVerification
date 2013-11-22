@@ -2,14 +2,14 @@
 <package>
   <metadata>
     <id>ApprovalTests.BetterPdfVerification</id>
-    <version>0.0.1</version>
+    <version>0.2.0</version>
     <authors>George Mauer</authors>
     <owners>gmauer@mail.com</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>https://github.com/togakangaroo/ApprovalTests.BetterPdfVerification</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>ApprovalTests extension that normalizes pdfs to allow for better pdf verification </description>
-    <releaseNotes>Initial release</releaseNotes>
+    <releaseNotes>Can take FileInfo input</releaseNotes>
     <tags>ApprovalTests approvals pdf normalization verification</tags>
     <dependencies>
       <group>
