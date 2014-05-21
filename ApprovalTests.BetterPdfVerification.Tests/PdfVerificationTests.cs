@@ -31,7 +31,7 @@ namespace ApprovalTests.BetterPdfVerification.Tests
                 );
         }
 
-        [Fact(Skip="Does not currently pass")]
+        [Fact]
         public void will_normalize_different_timezones() {
             //Note if you are in Central Time (CTZ) this test isn't very meaningful as thats what the approval is currently tuned to. Sorry.
             PdfApprovals.Verify(PathUtilities.GetAdjacentFile("pdf-created-in-odessa-timezone.pdf"));

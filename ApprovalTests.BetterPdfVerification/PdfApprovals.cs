@@ -44,10 +44,16 @@ namespace ApprovalTests.BetterPdfVerification
             using (var ms = new MemoryStream())
             {
                 doc.Save(ms, closeStream: false);
-                rewind(ms);
-                clearId(ms);
+                apply(ms, clearId);
+                apply(ms, fixTimezone);
                 Approvals.VerifyBinaryFile(ms.ToArray(), "pdf");
             }
+        }
+
+        static void apply(MemoryStream ms, Action<MemoryStream> action) {
+            rewind(ms);
+            action(ms);
+            rewind(ms);
         }
 
         static void rewind(Stream stream) { stream.Seek(0, SeekOrigin.Begin); }
@@ -66,6 +72,38 @@ namespace ApprovalTests.BetterPdfVerification
                 return;
             ms.Seek(matchLocation, SeekOrigin.Begin);
             var replaceWith = enc.GetBytes("/ID[<").Concat(aBytes(32)).Concat(enc.GetBytes("><")).Concat(aBytes(32)).Concat(enc.GetBytes(">]")).ToArray();
+            ms.Write(replaceWith, 0, replaceWith.Length);
+        }
+
+        /// <summary>
+        /// PdfSharp has no way of fixing the timezone to a specific offset so we're stuck doing it manually
+        /// https://pdfsharp.codeplex.com/workitem/16846
+        /// Fixes created and modified timestamps to CST because thats where I am
+        /// Created and modified stamps look like this (the specific date is set earlier)
+        /// /CreationDate(D:20100101000000-05'00')
+        /// /ModDate(D:20100101000000-03'00')
+        /// </summary>
+        static void fixTimezone(MemoryStream ms) {
+            replaceDate(ms, "CreationDate");
+            rewind(ms);
+            replaceDate(ms, "ModDate");
+        }
+
+        static void replaceDate(MemoryStream ms, string dateField) {
+            var sr = new StreamReader(ms);
+            var enc = sr.CurrentEncoding;
+            var toMatch =
+                enc.GetBytes("/" + dateField).Concat(enc.GetBytes("(D:20100101000000-"))
+                    .Concat(wildcardBytes(2))
+                    .Concat(enc.GetBytes("'"))
+                    .Concat(wildcardBytes(2))
+                    .Concat(enc.GetBytes("')"))
+                    .ToArray();
+            var matchLocation = find(toMatch, ms);
+            if (matchLocation < 0)
+                return;
+            ms.Seek(matchLocation, SeekOrigin.Begin);
+            var replaceWith = enc.GetBytes("/{0}(D:20100101000000-06'00')".Fmt(dateField));
             ms.Write(replaceWith, 0, replaceWith.Length);
         }
 
@@ -98,6 +136,13 @@ namespace ApprovalTests.BetterPdfVerification
         static bool compare(byte matchingByte, int targetByte)
         {
             return matchingByte == default(byte) || matchingByte == targetByte;
+        }
+    }
+
+    public static class StringExtensions
+    {
+        public static string Fmt(this string pattern, params object[] args) {
+            return String.Format(pattern, args);
         }
     }
 }
