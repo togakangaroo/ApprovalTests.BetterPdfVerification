@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 
@@ -59,19 +61,20 @@ namespace ApprovalTests.BetterPdfVerification
         static void rewind(Stream stream) { stream.Seek(0, SeekOrigin.Begin); }
 
         /// <summary>
-        /// Ids look like this:
+        /// Ids look like this (32chars*2):
         /// /ID[<7B8D63B6A42B804386D5145B251346BC><952D5CBCFB77E14A80CFFC76AC1D2F6A>]
         /// </summary>
         static void clearId(MemoryStream ms)
         {
             var sr = new StreamReader(ms);
             var enc = sr.CurrentEncoding;
-            var toMatch = enc.GetBytes("/ID[<").Concat(wildcardBytes(32)).Concat(enc.GetBytes("><")).Concat(wildcardBytes(32)).Concat(enc.GetBytes(">]")).ToArray();
+            var toMatch = bytesWithWildCards(enc, "/ID[<********************************><********************************>]");
             var matchLocation = find(toMatch, ms);
             if (matchLocation < 0)
                 return;
             ms.Seek(matchLocation, SeekOrigin.Begin);
-            var replaceWith = enc.GetBytes("/ID[<").Concat(aBytes(32)).Concat(enc.GetBytes("><")).Concat(aBytes(32)).Concat(enc.GetBytes(">]")).ToArray();
+            var aBytes32 = String.Join("", Enumerable.Repeat("A", 32));
+            var replaceWith = enc.GetBytes("/ID[<{0}><{0}>]".Fmt(aBytes32)).ToArray();
             ms.Write(replaceWith, 0, replaceWith.Length);
         }
 
@@ -92,13 +95,7 @@ namespace ApprovalTests.BetterPdfVerification
         static void replaceDate(MemoryStream ms, string dateField) {
             var sr = new StreamReader(ms);
             var enc = sr.CurrentEncoding;
-            var toMatch =
-                enc.GetBytes("/" + dateField).Concat(enc.GetBytes("(D:20100101000000-"))
-                    .Concat(wildcardBytes(2))
-                    .Concat(enc.GetBytes("'"))
-                    .Concat(wildcardBytes(2))
-                    .Concat(enc.GetBytes("')"))
-                    .ToArray();
+            var toMatch = bytesWithWildCards(enc, "/{0}(D:20100101000000-**'**')".Fmt(dateField));
             var matchLocation = find(toMatch, ms);
             if (matchLocation < 0)
                 return;
@@ -106,9 +103,6 @@ namespace ApprovalTests.BetterPdfVerification
             var replaceWith = enc.GetBytes("/{0}(D:20100101000000-06'00')".Fmt(dateField));
             ms.Write(replaceWith, 0, replaceWith.Length);
         }
-
-        static IEnumerable<byte> wildcardBytes(int count) { return Enumerable.Repeat(default(byte), count); }
-        static IEnumerable<byte> aBytes(int count) { return Enumerable.Repeat((byte)'A', count); }
 
         static long find(byte[] toMatch, Stream stream)
         {
@@ -136,6 +130,16 @@ namespace ApprovalTests.BetterPdfVerification
         static bool compare(byte matchingByte, int targetByte)
         {
             return matchingByte == default(byte) || matchingByte == targetByte;
+        }
+
+        /// <summary>
+        /// Convert a string in the form "foo*bar**baz" and convert into an array of bytes with the given encoding
+        /// all '*'s will be wildcard characters
+        /// </summary>
+        static byte[] bytesWithWildCards(Encoding enc, string pattern) {
+            return Regex.Split(pattern, @"(\*)").Where(x => x != String.Empty)
+                .SelectMany(s => s == "*" ? new []{default(byte)} : enc.GetBytes(s))
+                .ToArray();
         }
     }
 

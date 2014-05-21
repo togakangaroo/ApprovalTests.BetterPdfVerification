@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>ApprovalTests.BetterPdfVerification</id>
-    <version>0.3.0</version>
+    <version>1.0.0</version>
     <authors>George Mauer</authors>
     <owners>gmauer@mail.com</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>

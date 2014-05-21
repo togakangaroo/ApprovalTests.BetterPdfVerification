@@ -19,4 +19,4 @@ or
 
 ## Notes
 
-* This library uses [PdfSharp](http://pdfsharp.com/PDFsharp/) to normalize as much as possible to known values. [Unfortunately, it cannot do so for the ID](http://forum.pdfsharp.net/viewtopic.php?f=2&t=2656&p=7644#p7644)
+* This library uses [PdfSharp](http://pdfsharp.com/PDFsharp/) to normalize as much as possible to known values. [Unfortunately, it cannot do so for the ID](http://forum.pdfsharp.net/viewtopic.php?f=2&t=2656&p=7644#p7644) [nor timezone offsets](//https://pdfsharp.codeplex.com/workitem/16846)
