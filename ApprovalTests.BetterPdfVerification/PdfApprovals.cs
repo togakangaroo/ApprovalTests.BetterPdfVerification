@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,8 +40,7 @@ namespace ApprovalTests.BetterPdfVerification
 
         static void verify(PdfDocument doc)
         {
-            var knownDate = new DateTime(2010, 1, 1);
-            doc.Info.CreationDate = doc.Info.ModificationDate = knownDate;
+            doc.Info.CreationDate = doc.Info.ModificationDate = aKnownDate;
             using (var ms = new MemoryStream())
             {
                 doc.Save(ms, closeStream: false);
@@ -73,8 +71,7 @@ namespace ApprovalTests.BetterPdfVerification
             if (matchLocation < 0)
                 return;
             ms.Seek(matchLocation, SeekOrigin.Begin);
-            var aBytes32 = String.Join("", Enumerable.Repeat("A", 32));
-            var replaceWith = enc.GetBytes("/ID[<{0}><{0}>]".Fmt(aBytes32)).ToArray();
+            var replaceWith = enc.GetBytes("/ID[<AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA><AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA>]").ToArray();
             ms.Write(replaceWith, 0, replaceWith.Length);
         }
 
@@ -87,20 +84,22 @@ namespace ApprovalTests.BetterPdfVerification
         /// /ModDate(D:20100101000000-03'00')
         /// </summary>
         static void fixTimezone(MemoryStream ms) {
-            replaceDate(ms, "CreationDate");
+            //So if we go through the times anyways, why use PdfSharp at all?
+            //The reason is there are different ways to represent these timestamps and PdfSharp normalizes these
+            replaceDateTimezone(ms, "CreationDate");
             rewind(ms);
-            replaceDate(ms, "ModDate");
+            replaceDateTimezone(ms, "ModDate");
         }
 
-        static void replaceDate(MemoryStream ms, string dateField) {
+        static void replaceDateTimezone(MemoryStream ms, string dateField) {
             var sr = new StreamReader(ms);
             var enc = sr.CurrentEncoding;
-            var toMatch = bytesWithWildCards(enc, "/{0}(D:20100101000000-**'**')".Fmt(dateField));
+            var toMatch = bytesWithWildCards(enc, "/{0}(D:{1:yyyyMMddHHmmss}-**'**')".Fmt(dateField, aKnownDate));
             var matchLocation = find(toMatch, ms);
             if (matchLocation < 0)
                 return;
             ms.Seek(matchLocation, SeekOrigin.Begin);
-            var replaceWith = enc.GetBytes("/{0}(D:20100101000000-06'00')".Fmt(dateField));
+            var replaceWith = enc.GetBytes("/{0}(D:{1:yyyyMMddHHmmss}-06'00')".Fmt(dateField, aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
             ms.Write(replaceWith, 0, replaceWith.Length);
         }
 
@@ -141,6 +140,11 @@ namespace ApprovalTests.BetterPdfVerification
                 .SelectMany(s => s == "*" ? new []{default(byte)} : enc.GetBytes(s))
                 .ToArray();
         }
+        /// <summary>
+        /// Just any known date that is constant
+        /// </summary>
+        static readonly DateTime aKnownDate = new DateTime(2010, 1, 1);
+
     }
 
     public static class StringExtensions
