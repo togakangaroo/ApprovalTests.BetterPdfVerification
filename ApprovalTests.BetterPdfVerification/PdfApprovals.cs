@@ -1,8 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 
@@ -62,17 +59,10 @@ namespace ApprovalTests.BetterPdfVerification
         /// Ids look like this (32chars*2):
         /// /ID[<7B8D63B6A42B804386D5145B251346BC><952D5CBCFB77E14A80CFFC76AC1D2F6A>]
         /// </summary>
-        static void clearId(MemoryStream ms)
-        {
-            var sr = new StreamReader(ms);
-            var enc = sr.CurrentEncoding;
-            var toMatch = bytesWithWildCards(enc, "/ID[<********************************><********************************>]");
-            var matchLocation = find(toMatch, ms);
-            if (matchLocation < 0)
-                return;
-            ms.Seek(matchLocation, SeekOrigin.Begin);
-            var replaceWith = enc.GetBytes("/ID[<AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA><AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA>]").ToArray();
-            ms.Write(replaceWith, 0, replaceWith.Length);
+        static void clearId(MemoryStream ms) {
+            new BytewiseSearchReplace(ms).Replace(
+                "/ID[<********************************><********************************>]",
+                "/ID[<AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA><AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA>]");
         }
 
         /// <summary>
@@ -86,71 +76,19 @@ namespace ApprovalTests.BetterPdfVerification
         static void fixTimezone(MemoryStream ms) {
             //So if we go through the times anyways, why use PdfSharp at all?
             //The reason is there are different ways to represent these timestamps and PdfSharp normalizes these
-            replaceDateTimezone(ms, "CreationDate");
+            new BytewiseSearchReplace(ms).Replace(
+                "/CreationDate(D:{0:yyyyMMddHHmmss}-**'**')".Fmt(aKnownDate),
+                "/CreationDate(D:{0:yyyyMMddHHmmss}-06'00')".Fmt(aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
             rewind(ms);
-            replaceDateTimezone(ms, "ModDate");
+            new BytewiseSearchReplace(ms).Replace(
+                "/ModDate(D:{0:yyyyMMddHHmmss}-**'**')".Fmt(aKnownDate),
+                "/ModDate(D:{0:yyyyMMddHHmmss}-06'00')".Fmt(aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
         }
 
-        static void replaceDateTimezone(MemoryStream ms, string dateField) {
-            var sr = new StreamReader(ms);
-            var enc = sr.CurrentEncoding;
-            var toMatch = bytesWithWildCards(enc, "/{0}(D:{1:yyyyMMddHHmmss}-**'**')".Fmt(dateField, aKnownDate));
-            var matchLocation = find(toMatch, ms);
-            if (matchLocation < 0)
-                return;
-            ms.Seek(matchLocation, SeekOrigin.Begin);
-            var replaceWith = enc.GetBytes("/{0}(D:{1:yyyyMMddHHmmss}-06'00')".Fmt(dateField, aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
-            ms.Write(replaceWith, 0, replaceWith.Length);
-        }
-
-        static long find(byte[] toMatch, Stream stream)
-        {
-            while (stream.Length != stream.Position)
-            {
-                var initialPosition = stream.Position;
-                stream.ReadByte(); //this is almost certainly not correct but seems to work
-                if (isMatchingAtCurrentPosition(toMatch, stream))
-                    return initialPosition;
-                stream.Seek(initialPosition, SeekOrigin.Begin);
-                stream.ReadByte();
-            }
-            return -1;
-        }
-
-        static bool isMatchingAtCurrentPosition(byte[] toMatch, Stream stream)
-        {
-            int idx;
-            stream.Seek(-1, SeekOrigin.Current); //rewind the stream a bit so the first bit is considered
-            for (idx = 0; idx < toMatch.Length && stream.Position < stream.Length
-                && compare(toMatch[idx], stream.ReadByte()); idx++) { }
-            return idx == toMatch.Length;
-        }
-
-        static bool compare(byte matchingByte, int targetByte)
-        {
-            return matchingByte == default(byte) || matchingByte == targetByte;
-        }
-
-        /// <summary>
-        /// Convert a string in the form "foo*bar**baz" and convert into an array of bytes with the given encoding
-        /// all '*'s will be wildcard characters
-        /// </summary>
-        static byte[] bytesWithWildCards(Encoding enc, string pattern) {
-            return Regex.Split(pattern, @"(\*)").Where(x => x != String.Empty)
-                .SelectMany(s => s == "*" ? new []{default(byte)} : enc.GetBytes(s))
-                .ToArray();
-        }
         /// <summary>
         /// Just any known date that is constant
         /// </summary>
         static readonly DateTime aKnownDate = new DateTime(2010, 1, 1);
 
-    }
-
-    public static class StringExtensions
-    {
-        public static string Fmt(this string pattern, params object[] args) {
-            return String.Format(pattern, args);
-        }
     }
 }
