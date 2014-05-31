@@ -47,23 +47,35 @@ namespace ApprovalTests.BetterPdfVerification.Tests
                 );
         }
 
+        [Fact]
+        public void can_use_image_approval_mode() {
+            PdfApprovals.Verify(createSamplePdf(), asImage: true);
+        }
+
         /// <summary>
         /// Create hello world pdf, from http://www.pdfsharp.com/PDFsharp/index.php?option=com_content&task=view&id=15&Itemid=35
         /// </summary>
         static Stream createSamplePdf() {
             var document = new PdfDocument();
-            var page = document.AddPage();
-            var gfx = XGraphics.FromPdfPage(page);
-            var font = new XFont("Verdana", 20, XFontStyle.Bold);
-
-            gfx.DrawString(
-                "Hello, World!", font, XBrushes.Black,
-                new XRect(0, 0, page.Width, page.Height),
-                XStringFormat.Center);
+            var text = "Hello, World!";
+            addPageWithText(document, text);
 
             var ms = new MemoryStream();
             document.Save(ms, closeStream: false);
             return ms;
         }
+
+        static PdfPage addPageWithText(PdfDocument document, string text) {
+            var page = document.AddPage();
+            var gfx = XGraphics.FromPdfPage(page);
+            var font = new XFont("Verdana", 20, XFontStyle.Bold);
+
+            gfx.DrawString(
+                text, font, XBrushes.Black,
+                new XRect(0, 0, page.Width, page.Height),
+                XStringFormats.Center);
+            return page;
+        }
+
     }
 }

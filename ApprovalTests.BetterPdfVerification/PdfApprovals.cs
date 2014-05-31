@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
-using PdfSharp.Pdf;
+using GhostscriptSharp;
+using GhostscriptSharp.Settings;
 using PdfSharp.Pdf.IO;
 
 namespace ApprovalTests.BetterPdfVerification
@@ -16,7 +18,7 @@ namespace ApprovalTests.BetterPdfVerification
         public static void Verify(FileInfo pdfFile) {
             if (pdfFile == null)
                 throw new ArgumentNullException("pdfFile");
-            if(!pdfFile.Exists)
+            if (!pdfFile.Exists)
                 throw new ArgumentException(String.Format("Non-existant file: '{0}'", pdfFile.FullName));
             Verify(pdfFile.OpenRead());
         }
@@ -24,71 +26,63 @@ namespace ApprovalTests.BetterPdfVerification
         public static void Verify(string pdfFile) {
             if (pdfFile == null)
                 throw new ArgumentNullException("pdfFile");
-            verify(PdfReader.Open(pdfFile, PdfDocumentOpenMode.Modify));
-        }
-        public static void Verify(Stream pdf) {
-            if(pdf == null)
-                throw new ArgumentNullException("pdf");
-            if(pdf.Length <= 0)
-                throw new ArgumentException("Pdf stream has no contents");
-            rewind(pdf);
-            verify(PdfReader.Open(pdf, PdfDocumentOpenMode.Modify));
+            new PdfScrubbingVerifier().Verify(PdfReader.Open(pdfFile, PdfDocumentOpenMode.Modify));
         }
 
-        static void verify(PdfDocument doc)
-        {
-            doc.Info.CreationDate = doc.Info.ModificationDate = aKnownDate;
-            using (var ms = new MemoryStream())
-            {
-                doc.Save(ms, closeStream: false);
-                apply(ms, clearId);
-                apply(ms, fixTimezone);
-                Approvals.VerifyBinaryFile(ms.ToArray(), "pdf");
+        public static void Verify(Stream pdf, bool asImage = false) {
+            if (pdf == null)
+                throw new ArgumentNullException("pdf");
+            if (pdf.Length <= 0)
+                throw new ArgumentException("Pdf stream has no contents");
+            pdf.Rewind();
+            if (asImage)
+                new PdfAsImageVerifier().Verify(pdf);
+            else
+                new PdfScrubbingVerifier().Verify(PdfReader.Open(pdf, PdfDocumentOpenMode.Modify));
+        }
+    }
+
+    public class PdfAsImageVerifier
+    {
+        public void Verify(Stream pdf) {
+            using (var pdfFile = new DisposableFile(pdf))
+                Verify(pdfFile.File);
+        }
+
+        public void Verify(FileInfo pdf) {
+            if (!pdf.Exists)
+                throw new InvalidOperationException("File to verify does not exist '{0}'".Fmt(pdf.FullName));
+
+            using (var destination = new DisposableFile()) {
+                GhostscriptWrapper.GenerateOutput(
+                    inputPath: pdf.FullName,
+                    outputPath: destination.File.FullName,
+                    settings: new GhostscriptSettings {
+                        Device = GhostscriptDevices.tiff24nc,
+                        Resolution = new Size(72, 72),
+                        Size = new GhostscriptPageSize {Native = GhostscriptPageSizes.letter}
+                    });
+
+                Approvals.VerifyBinaryFile(destination.File.OpenRead().ToNewMemoryStream().ToArray(), "tiff");
             }
         }
+    }
 
-        static void apply(MemoryStream ms, Action<MemoryStream> action) {
-            rewind(ms);
-            action(ms);
-            rewind(ms);
+    public class DisposableFile : IDisposable
+    {
+        public DisposableFile() {
+            File = new FileInfo(Path.Combine(GetTempPath(), Guid.NewGuid().ToString()));            
+        }
+        public DisposableFile(Stream stream) : this() {
+            using (var fs = File.Create())
+                stream.Rewind().CopyTo(fs);        
         }
 
-        static void rewind(Stream stream) { stream.Seek(0, SeekOrigin.Begin); }
-
-        /// <summary>
-        /// Ids look like this (32chars*2):
-        /// /ID[<7B8D63B6A42B804386D5145B251346BC><952D5CBCFB77E14A80CFFC76AC1D2F6A>]
-        /// </summary>
-        static void clearId(MemoryStream ms) {
-            new BytewiseSearchReplace(ms).Replace(
-                "/ID[<********************************><********************************>]",
-                "/ID[<AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA><AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA>]");
+        public static Func<string> GetTempPath = () => Path.GetTempPath(); 
+        public readonly FileInfo File;
+        public void Dispose() {
+            try { File.Delete(); }
+            catch (Exception) {}
         }
-
-        /// <summary>
-        /// PdfSharp has no way of fixing the timezone to a specific offset so we're stuck doing it manually
-        /// https://pdfsharp.codeplex.com/workitem/16846
-        /// Fixes created and modified timestamps to CST because thats where I am
-        /// Created and modified stamps look like this (the specific date is set earlier)
-        /// /CreationDate(D:20100101000000-05'00')
-        /// /ModDate(D:20100101000000-03'00')
-        /// </summary>
-        static void fixTimezone(MemoryStream ms) {
-            //So if we go through the times anyways, why use PdfSharp at all?
-            //The reason is there are different ways to represent these timestamps and PdfSharp normalizes these
-            new BytewiseSearchReplace(ms).Replace(
-                "/CreationDate(D:{0:yyyyMMddHHmmss}-**'**')".Fmt(aKnownDate),
-                "/CreationDate(D:{0:yyyyMMddHHmmss}-06'00')".Fmt(aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
-            rewind(ms);
-            new BytewiseSearchReplace(ms).Replace(
-                "/ModDate(D:{0:yyyyMMddHHmmss}-**'**')".Fmt(aKnownDate),
-                "/ModDate(D:{0:yyyyMMddHHmmss}-06'00')".Fmt(aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
-        }
-
-        /// <summary>
-        /// Just any known date that is constant
-        /// </summary>
-        static readonly DateTime aKnownDate = new DateTime(2010, 1, 1);
-
     }
 }
