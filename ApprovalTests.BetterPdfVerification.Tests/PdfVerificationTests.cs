@@ -51,15 +51,18 @@ namespace ApprovalTests.BetterPdfVerification.Tests
         public void can_use_image_approval_mode() {
             PdfApprovals.Verify(createSamplePdf(), asImage: true);
         }
+        [Fact]
+        public void can_use_image_approval_mode_with_multipage() {
+            PdfApprovals.Verify(createSamplePdf("Page 1", "Page 2"), asImage: true);
+        }
 
         /// <summary>
         /// Create hello world pdf, from http://www.pdfsharp.com/PDFsharp/index.php?option=com_content&task=view&id=15&Itemid=35
         /// </summary>
-        static Stream createSamplePdf() {
+        static Stream createSamplePdf(string page1Text = "Hello, World!", params string[] otherPageTexts) {
             var document = new PdfDocument();
-            var text = "Hello, World!";
-            addPageWithText(document, text);
-
+            addPageWithText(document, page1Text);
+            otherPageTexts.ForEach(txt =>addPageWithText(document, txt));
             var ms = new MemoryStream();
             document.Save(ms, closeStream: false);
             return ms;
