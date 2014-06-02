@@ -38,11 +38,13 @@
     <Reference Include="ApprovalUtilities">
       <HintPath>..\packages\ApprovalUtilities.3.0.5\lib\net35\ApprovalUtilities.dll</HintPath>
     </Reference>
-    <Reference Include="BitMiracle.LibTiff.NET">
+    <Reference Include="BitMiracle.LibTiff.NET, Version=2.3.642.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\BitMiracle.LibTiff.NET.2.3.642.0\lib\net20\BitMiracle.LibTiff.NET.dll</HintPath>
     </Reference>
-    <Reference Include="GhostscriptSharp">
-      <HintPath>..\packages\GhostScriptSharp.1.3.1\lib\net40\GhostscriptSharp.dll</HintPath>
+    <Reference Include="GhostscriptSharp, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\GhostScriptSharp.1.3.1.1\lib\net40\GhostscriptSharp.dll</HintPath>
     </Reference>
     <Reference Include="PdfSharp">
       <HintPath>..\packages\PDFsharp.1.32.3057.0\lib\net20\PdfSharp.dll</HintPath>
@@ -78,7 +80,6 @@
     <None Include="PostBuildScripts\UploadPackage-RunManually.ps1" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Ghostscript\gsdll32.dll" />
     <Content Include="PostBuildScripts\NuGet.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -87,7 +88,7 @@
     <PostBuildEvent>REM Create a NuGet package for this project and place the .nupkg file in the project's output directory.
 ECHO Building NuGet package in Post-Build event...
 PowerShell -NoProfile -ExecutionPolicy Bypass -Command "&amp; '$(ProjectDir)PostBuildScripts\BuildNewPackage-RanAutomatically.ps1' -ProjectFilePath '$(ProjectPath)' -OutputDirectory '$(TargetDir)'"
-if not exist "$(TargetDir)\gsdll32.dll" xcopy /Y "$(ProjectDir)\Ghostscript\gsdll32.dll" "$(TargetDir)"</PostBuildEvent>
+PowerShell -NoProfile -ExecutionPolicy Bypass -Command "ls '$(SolutionDir)\packages\GhostScriptSharp.*\Tools\gsdll32.dll' | Sort -Descending | Select -First 1 | cp -Destination '$(TargetDir)' "</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
