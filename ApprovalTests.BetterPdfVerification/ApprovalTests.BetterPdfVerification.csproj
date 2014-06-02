@@ -63,7 +63,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BytewiseSearchReplace.cs" />
+    <Compile Include="DisposableFile.cs" />
     <Compile Include="PdfApprovals.cs" />
+    <Compile Include="PdfAsImageVerifier.cs" />
     <Compile Include="PdfScrubbingVerifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StreamExtensions.cs" />
