@@ -16,7 +16,12 @@ or
 	string pdfFilePath = getSamplePdfPath();
     PdfApprovals.Verify(pdfFilePath);
 
+Unfortunately, pdf files can have embedded all sorts of things like fonts that will vary depending on what system they were run on. BetterPdfVerification now supports visual verification
+
+    PdfApprovals.VerifyVisually(createSamplePdf());
+
+Will first convert the pdf to a Tiff file and trigger verification on that.
 
 ## Notes
 
-* This library uses [PdfSharp](http://pdfsharp.com/PDFsharp/) to normalize as much as possible to known values. [Unfortunately, it cannot do so for the ID](http://forum.pdfsharp.net/viewtopic.php?f=2&t=2656&p=7644#p7644) [nor timezone offsets](//https://pdfsharp.codeplex.com/workitem/16846)
+* This library uses [PdfSharp](http://pdfsharp.com/PDFsharp/) to normalize as much as possible to known values. [Unfortunately, it cannot do so for things like embedded fonts as PdfSharp does not supply a good facility for this](http://stackoverflow.com/a/23905287/5056). In such a situation try using the `VerifyVisually` verifier.
