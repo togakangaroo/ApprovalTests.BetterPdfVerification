@@ -1,4 +1,4 @@
-#==========================================================
+﻿#==========================================================
 # This script must be run manually.
 #
 # This script prompts you for a NuGet package file (.nupkg) and then uploads it to the gallery. The project's .nupkg file should be in the same directory as the project's .dll/.exe file (typically bin\Debug or bin\Release).
@@ -16,15 +16,23 @@
 #==========================================================
 $THIS_SCRIPTS_DIRECTORY = Split-Path $script:MyInvocation.MyCommand.Path
 
+#################################################
+# Users May Edit The Following Variables.
+#################################################
+
 # The NuGet gallery to upload to. If not provided, the DefaultPushSource in your NuGet.config file is used (typically nuget.org).
 $sourceToUploadTo = ""
 
 # The API Key to use to upload the package to the gallery. If not provided and a system-level one does not exist for the specified Source, you will be prompted for it.
 $apiKey = ""
 
-# Specify any additional NuGet Pack options to pass to nuget.exe.
+# Specify any additional NuGet Push options to pass to nuget.exe.
 # Rather than specifying the -Source or -ApiKey here, use the variables above.
 $pushOptions = ""
+
+#################################################
+# Do Not Edit Anything Past This Point (except to add the "-Verbose" flag to the end of the last line for troubleshooting purposes).
+#################################################
 
 # Add the Source and ApiKey to the Push Options if there were provided.
 if (![string]::IsNullOrWhiteSpace($sourceToUploadTo)) { $pushOptions += " -Source ""$sourceToUploadTo"" " }
