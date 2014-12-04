@@ -2,9 +2,9 @@
 <package>
   <metadata>
     <id>ApprovalTests.BetterPdfVerification</id>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <authors>George Mauer</authors>
-    <owners>gmauer@mail.com</owners>
+    <owners>gmauer@gmail.com</owners>
     <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
     <projectUrl>https://github.com/togakangaroo/ApprovalTests.BetterPdfVerification</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>

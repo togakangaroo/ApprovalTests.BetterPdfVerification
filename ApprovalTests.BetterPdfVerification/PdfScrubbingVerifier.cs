@@ -22,7 +22,7 @@ namespace ApprovalTests.BetterPdfVerification
                 doc.Save(ms, closeStream: false);
                 apply(ms, clearId);
                 apply(ms, fixTimezone);
-	            Approvals.Verify(new ApprovalBinaryWriter(ms.ToArray(), "pdf"), Namer, ApprovalFailureReporter);
+	            Approvals.Verify(new ApprovalBinaryWriter(ms.ToArray(), "pdf"), GetNamer(), GetReporter());
             }
         }
 
@@ -68,7 +68,13 @@ namespace ApprovalTests.BetterPdfVerification
         /// </summary>
         static readonly DateTime aKnownDate = new DateTime(2010, 1, 1);
 
-	    public IApprovalFailureReporter ApprovalFailureReporter = Approvals.GetReporter();
-	    public IApprovalNamer Namer = Approvals.GetDefaultNamer();
+		/// <summary>
+		/// Provide your own function for using a custom reporter
+		/// </summary>
+		public Func<IApprovalFailureReporter> GetReporter = () => Approvals.GetReporter();
+		/// <summary>
+		/// Provide your own function for using a custom namer
+		/// </summary>
+	    public Func<IApprovalNamer> GetNamer = () => Approvals.GetDefaultNamer();
     }
 }

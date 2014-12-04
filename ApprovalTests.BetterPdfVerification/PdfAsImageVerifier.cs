@@ -13,9 +13,6 @@ namespace ApprovalTests.BetterPdfVerification
 {
 	public class PdfAsImageVerifier
 	{
-		public IApprovalNamer Namer = Approvals.GetDefaultNamer();
-		public IApprovalFailureReporter Reporter = Approvals.GetReporter();
-
 		public void Verify(Stream pdf) {
 			using (var pdfFile = new DisposableFile(pdf))
 				Verify(pdfFile.File);
@@ -42,8 +39,17 @@ namespace ApprovalTests.BetterPdfVerification
 						tiff.CheckpointDirectory();
 					});
 				}
-				Approvals.Verify(new ApprovalBinaryWriter(destination.File.OpenRead().ToNewMemoryStream().ToArray(), "tiff"), Namer, Reporter);
+				Approvals.Verify(new ApprovalBinaryWriter(destination.File.OpenRead().ToNewMemoryStream().ToArray(), "tiff"), GetNamer(), GetReporter());
 			}
 		}
+
+		/// <summary>
+		/// Provide your own function for using a custom reporter
+		/// </summary>
+		public Func<IApprovalFailureReporter> GetReporter = () => Approvals.GetReporter();
+		/// <summary>
+		/// Provide your own function for using a custom namer
+		/// </summary>
+	    public Func<IApprovalNamer> GetNamer = () => Approvals.GetDefaultNamer();
 	}
 }
