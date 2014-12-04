@@ -16,6 +16,11 @@ or
 	string pdfFilePath = getSamplePdfPath();
     PdfApprovals.Verify(pdfFilePath);
 
+The above will attempt to normalize inconsequential but inconsistent values in pdf files but will ultimately compare pdfs as text. Sometimes however there's no way around differences in pdf files (eg timezone differences which come from which computer the code ran on). In that case, the library will allow you to convert the pdf to a tiff image which will drop any metadata and allow you to compare them visually pixel-by-pixel. To use this functionality use
+
+    PdfApprovals.VerifyVisually(pdf);
+
+The methods on PdfApprovals are simply wrappers for calls to `PdfScrubbingVerifier` or `PdfAsImageVerifier`. You can use these directly. This is especially useful if you want to provide a custom approval reporter or namer. To set these, both classes expose settable `GetReporter` and `GetNamer` fields.
 
 ## Notes
 
