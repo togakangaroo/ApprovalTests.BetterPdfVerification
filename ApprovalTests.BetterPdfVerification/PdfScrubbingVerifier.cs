@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using ApprovalTests.Core;
+using ApprovalTests.Writers;
 using PdfSharp.Pdf;
 
 namespace ApprovalTests.BetterPdfVerification
@@ -20,7 +22,7 @@ namespace ApprovalTests.BetterPdfVerification
                 doc.Save(ms, closeStream: false);
                 apply(ms, clearId);
                 apply(ms, fixTimezone);
-                Approvals.VerifyBinaryFile(ms.ToArray(), "pdf");
+	            Approvals.Verify(new ApprovalBinaryWriter(ms.ToArray(), "pdf"), Namer, ApprovalFailureReporter);
             }
         }
 
@@ -65,5 +67,8 @@ namespace ApprovalTests.BetterPdfVerification
         /// Just any known date that is constant
         /// </summary>
         static readonly DateTime aKnownDate = new DateTime(2010, 1, 1);
+
+	    public IApprovalFailureReporter ApprovalFailureReporter = Approvals.GetReporter();
+	    public IApprovalNamer Namer = Approvals.GetDefaultNamer();
     }
 }
