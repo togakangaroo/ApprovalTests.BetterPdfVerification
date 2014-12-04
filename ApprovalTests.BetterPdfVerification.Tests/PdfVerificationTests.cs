@@ -49,11 +49,11 @@ namespace ApprovalTests.BetterPdfVerification.Tests
 
         [Fact]
         public void can_use_image_approval_mode() {
-            PdfApprovals.Verify(createSamplePdf(), asImage: true);
+            PdfApprovals.VerifyVisually(createSamplePdf());
         }
         [Fact]
         public void can_use_image_approval_mode_with_multipage() {
-            PdfApprovals.Verify(createSamplePdf("Page 1", "Page 2"), asImage: true);
+            PdfApprovals.VerifyVisually(createSamplePdf("Page 1", "Page 2"));
         }
 
         /// <summary>
