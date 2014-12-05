@@ -39,7 +39,7 @@ namespace ApprovalTests.BetterPdfVerification
 						tiff.CheckpointDirectory();
 					});
 				}
-				Approvals.Verify(new ApprovalBinaryWriter(destination.File.OpenRead().ToNewMemoryStream().ToArray(), "tiff"), GetNamer(), GetReporter());
+				Approvals.Verify(GetTiffApprovalWriter(destination.File), GetNamer(), GetReporter());
 			}
 		}
 
@@ -51,5 +51,9 @@ namespace ApprovalTests.BetterPdfVerification
 		/// Provide your own function for using a custom namer
 		/// </summary>
 	    public Func<IApprovalNamer> GetNamer = () => Approvals.GetDefaultNamer();
+		/// <summary>
+		/// Provide a function for using a custom writer. The writer must be able to handle tiff files
+		/// </summary>
+		public Func<FileInfo, IApprovalWriter> GetTiffApprovalWriter = file => new ApprovalBinaryWriter(file.OpenRead().ToNewMemoryStream().ToArray(), "tiff");
 	}
 }

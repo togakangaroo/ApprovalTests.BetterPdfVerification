@@ -15,6 +15,5 @@ namespace ApprovalTests.BetterPdfVerification
             stream.CopyTo(ms);
             return ms;
         }
-
     }
 }

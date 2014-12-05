@@ -22,7 +22,7 @@ namespace ApprovalTests.BetterPdfVerification
                 doc.Save(ms, closeStream: false);
                 apply(ms, clearId);
                 apply(ms, fixTimezone);
-	            Approvals.Verify(new ApprovalBinaryWriter(ms.ToArray(), "pdf"), GetNamer(), GetReporter());
+	            Approvals.Verify(GetPdfWriter(ms), GetNamer(), GetReporter());
             }
         }
 
@@ -76,5 +76,9 @@ namespace ApprovalTests.BetterPdfVerification
 		/// Provide your own function for using a custom namer
 		/// </summary>
 	    public Func<IApprovalNamer> GetNamer = () => Approvals.GetDefaultNamer();
+		/// <summary>
+		/// Provide your own writer. This writer should be capable of writing pdfs
+		/// </summary>
+	    public Func<MemoryStream, IApprovalWriter> GetPdfWriter = ms => new ApprovalBinaryWriter(ms.ToArray(), "pdf");
     }
 }
