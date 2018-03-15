@@ -55,11 +55,11 @@ namespace ApprovalTests.BetterPdfVerification
             //So if we go through the times anyways, why use PdfSharp at all?
             //The reason is there are different ways to represent these timestamps and PdfSharp normalizes these
             new BytewiseSearchReplace(ms).Replace(
-                "/CreationDate(D:{0:yyyyMMddHHmmss}-**'**')".Fmt(aKnownDate),
+                "/CreationDate(D:{0:yyyyMMddHHmmss}***'**')".Fmt(aKnownDate),
                 "/CreationDate(D:{0:yyyyMMddHHmmss}-06'00')".Fmt(aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
             ms.Rewind();
             new BytewiseSearchReplace(ms).Replace(
-                "/ModDate(D:{0:yyyyMMddHHmmss}-**'**')".Fmt(aKnownDate),
+                "/ModDate(D:{0:yyyyMMddHHmmss}***'**')".Fmt(aKnownDate),
                 "/ModDate(D:{0:yyyyMMddHHmmss}-06'00')".Fmt(aKnownDate)); //Why 6? Because that's where I am, it doesn't matter so long as its the same every time
         }
 
